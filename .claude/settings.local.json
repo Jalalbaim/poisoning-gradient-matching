@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python _gen_notebook.py)",
+      "Bash(python -c \"import json; nb=json.load\\(open\\('pipeline_explorer.ipynb'\\)\\); print\\('nbformat:', nb['nbformat']\\); print\\('cells:', len\\(nb['cells']\\)\\); [print\\(f'  [{i:02d}] {c[\\\\\"cell_type\\\\\"]:8s} {str\\(c[\\\\\"source\\\\\"]\\)[:60]}'\\) for i,c in enumerate\\(nb['cells']\\)]\")"
+    ]
+  }
+}

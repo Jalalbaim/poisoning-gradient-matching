@@ -37,8 +37,12 @@ def average_dicts(running_stats):
     average_stats = defaultdict(list)
     for stat in running_stats[0]:
         if isinstance(running_stats[0][stat], list):
-            for i, _ in enumerate(running_stats[0][stat]):
-                average_stats[stat].append(np.mean([stat_dict[stat][i] for stat_dict in running_stats]))
+            if running_stats[0][stat] and isinstance(running_stats[0][stat][0], dict):
+                # Non-numeric list (e.g., gradient_log dicts): keep from first run
+                average_stats[stat] = running_stats[0][stat]
+            else:
+                for i, _ in enumerate(running_stats[0][stat]):
+                    average_stats[stat].append(np.mean([stat_dict[stat][i] for stat_dict in running_stats]))
         else:
             average_stats[stat] = np.mean([stat_dict[stat] for stat_dict in running_stats])
     return average_stats

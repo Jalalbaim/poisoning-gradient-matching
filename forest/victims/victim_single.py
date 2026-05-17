@@ -24,7 +24,7 @@ class _VictimSingle(_VictimBase):
     def initialize(self, seed=None):
         if self.args.modelkey is None:
             if seed is None:
-                self.model_init_seed = np.random.randint(0, 2**32 - 1)
+                self.model_init_seed = int(np.random.default_rng().integers(0, 2**32, dtype=np.uint32))
             else:
                 self.model_init_seed = seed
         else:

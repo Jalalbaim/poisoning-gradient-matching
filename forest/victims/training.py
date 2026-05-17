@@ -5,6 +5,7 @@ import torch
 
 import datetime
 from .utils import print_and_save_stats, pgd_step
+from .laplace_mechanism import add_laplace_noise, log_gradient_stats
 
 from ..consts import NON_BLOCKING, BENCHMARK, DEBUG_TRAINING
 torch.backends.cudnn.benchmark = BENCHMARK
@@ -117,12 +118,20 @@ def run_step(kettle, poison_delta, loss_fn, epoch, stats, model, defs, criterion
             if defs.privacy['clip'] is not None:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), defs.privacy['clip'])
             if defs.privacy['noise'] is not None:
-                # generator = torch.distributions.laplace.Laplace(torch.as_tensor(0.0).to(**kettle.setup),
-                #                                                 kettle.defs.privacy['noise'])
-                for param in model.parameters():
-                    # param.grad += generator.sample(param.shape)
-                    noise_sample = torch.randn_like(param) * defs.privacy['clip'] * defs.privacy['noise']
-                    param.grad += noise_sample
+                if kettle.args.log_gradients:
+                    stats['gradient_log'].append(log_gradient_stats(model, batch, epoch, writer=None))
+                noise_type = defs.privacy.get('noise_type', getattr(kettle.args, 'noise_type', 'gaussian'))
+                if noise_type == 'laplace':
+                    add_laplace_noise(model, defs.privacy['clip'], defs.privacy['noise'])
+                else:
+                    # generator = torch.distributions.laplace.Laplace(torch.as_tensor(0.0).to(**kettle.setup),
+                    #                                                 kettle.defs.privacy['noise'])
+                    for param in model.parameters():
+                        # param.grad += generator.sample(param.shape)
+                        noise_sample = torch.randn_like(param) * defs.privacy['clip'] * defs.privacy['noise']
+                        param.grad += noise_sample
+                if kettle.args.log_gradients:
+                    stats['gradient_log'].append(log_gradient_stats(model, batch, epoch, writer=None))
 
 
         optimizer.step()

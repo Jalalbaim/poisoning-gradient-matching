@@ -89,6 +89,10 @@ def options():
     parser.add_argument('--noaugment', action='store_true', help='Do not use data augmentation during training.')
     parser.add_argument('--gradient_noise', default=None, type=float, help='Add custom gradient noise during training.')
     parser.add_argument('--gradient_clip', default=None, type=float, help='Add custom gradient clip during training.')
+    parser.add_argument('--noise_type', default='gaussian', type=str, choices=['gaussian', 'laplace'],
+                        help='Gradient noise distribution for privacy training.')
+    parser.add_argument('--log_gradients', action='store_true', default=False,
+                        help='Log per-parameter gradient L2 norms before and after noise injection.')
 
     # Optionally, datasets can be stored as LMDB or within RAM:
     parser.add_argument('--lmdb_path', default=None, type=str)

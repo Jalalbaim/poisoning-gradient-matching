@@ -49,7 +49,8 @@ class Kettle():
         self.batch_size = batch_size
         self.augmentations = augmentations
         self.trainset, self.validset = self.prepare_data(normalize=True)
-        num_workers = self.get_num_workers()
+        #num_workers = self.get_num_workers()
+        num_workers = 0
 
         if self.args.lmdb_path is not None:
             from .lmdb_datasets import LMDBDataset  # this also depends on py-lmdb
@@ -279,7 +280,7 @@ class Kettle():
         """
         if self.args.local_rank is None:
             if self.args.poisonkey is None:
-                self.init_seed = np.random.randint(0, 2**32 - 1)
+                self.init_seed = int(np.random.default_rng().integers(0, 2**32, dtype=np.uint32))
             else:
                 self.init_seed = int(self.args.poisonkey)
             set_random_seed(self.init_seed)
