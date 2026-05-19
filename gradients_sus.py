@@ -411,7 +411,7 @@ def train_with_grad_analysis(victim, kettle, max_epoch, grad_config,
 # Victim._step monkey-patch helper
 # ────────────────────────────────────────────────────────────────────────────
 
-def _with_logging(victim, grad_config, grad_records, svd_records, phase):
+def _with_logging(victim, grad_config, grad_records, svd_records, phase, flush_dir=None):
     """Replace victim._step with a version that logs per-sample gradients.
 
     victim._step is the single hook that both _iterate (and therefore train,
@@ -419,9 +419,15 @@ def _with_logging(victim, grad_config, grad_records, svd_records, phase):
     gradient records during the retrain and validate phases without touching
     any forest source file.
 
+    If flush_dir is set, records are written to per-epoch files after each
+    epoch and cleared from memory — keeping at most one epoch in RAM at a time.
+    Files are named: gradients_{phase}_epoch{N:04d}.pt / SVD_{phase}_epoch{N:04d}.pt
+
     The replacement is a bound method so it receives `self` as the first arg
     and has the exact same signature as the original _step.
     """
+    flush_stats = {'total_batches': 0, 'poisoned_batches': 0, 'G_shape': None}
+
     def _step(self, kettle, poison_delta, loss_fn, epoch, stats,
               model, defs, criterion, optimizer, scheduler):
         run_step_with_grad_analysis(
@@ -429,7 +435,22 @@ def _with_logging(victim, grad_config, grad_records, svd_records, phase):
             model, defs, criterion, optimizer, scheduler,
             grad_config, grad_records, svd_records, phase=phase,
         )
+        if flush_dir is not None and grad_records:
+            os.makedirs(flush_dir, exist_ok=True)
+            g_path = os.path.join(flush_dir, f'gradients_{phase}_epoch{epoch:04d}.pt')
+            s_path = os.path.join(flush_dir, f'SVD_{phase}_epoch{epoch:04d}.pt')
+            torch.save(list(grad_records), g_path)
+            torch.save(list(svd_records),  s_path)
+            flush_stats['total_batches']   += len(grad_records)
+            flush_stats['poisoned_batches'] += sum(1 for r in grad_records if r['is_poisoned'])
+            if flush_stats['G_shape'] is None and grad_records:
+                flush_stats['G_shape'] = tuple(grad_records[0]['G'].shape)
+            grad_records.clear()
+            svd_records.clear()
+            print(f'[GradAnalysis] Flushed epoch {epoch} → {g_path}')
+
     victim._step = types.MethodType(_step, victim)
+    return flush_stats
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -515,49 +536,39 @@ if __name__ == '__main__':
         stats_rerun = None
 
     # ── Validate phase: fresh victim trained on poisoned data, gradient logging enabled ─
+    flush_stats = {'total_batches': 0, 'poisoned_batches': 0, 'G_shape': None}
     if args.vnet is not None:
         train_net = args.net
         args.net  = args.vnet
         if args.vruns > 0:
             model = forest.Victim(args, setup=setup)
-            print('[GradAnalysis] Validate phase — per-sample gradient logging enabled.')
-            _with_logging(model, grad_config, grad_records, svd_records, phase='validate')
+            print('[GradAnalysis] Validate phase — per-sample gradient logging enabled (flush per epoch).')
+            flush_stats = _with_logging(model, grad_config, grad_records, svd_records,
+                                        phase='validate', flush_dir=grad_args.grad_save_dir)
             stats_results = model.validate(data, poison_delta)
         else:
             stats_results = None
         args.net = train_net
     else:
         if args.vruns > 0:
-            print('[GradAnalysis] Validate phase — per-sample gradient logging enabled.')
-            _with_logging(model, grad_config, grad_records, svd_records, phase='validate')
+            print('[GradAnalysis] Validate phase — per-sample gradient logging enabled (flush per epoch).')
+            flush_stats = _with_logging(model, grad_config, grad_records, svd_records,
+                                        phase='validate', flush_dir=grad_args.grad_save_dir)
             stats_results = model.validate(data, poison_delta)
         else:
             stats_results = None
 
     test_time = time.time()
 
-    # ── Save gradient records ────────────────────────────────────────────────
-    os.makedirs(grad_args.grad_save_dir, exist_ok=True)
-    grad_path = os.path.join(grad_args.grad_save_dir, 'gradients.pt')
-    svd_path  = os.path.join(grad_args.grad_save_dir, 'SVD_matrix.pt')
-
-    torch.save(grad_records, grad_path)
-    torch.save(svd_records,  svd_path)
-
-    total_batches    = len(grad_records)
-    poisoned_batches = sum(1 for r in grad_records if r['is_poisoned'])
-    phases           = {}
-    for r in grad_records:
-        phases[r['phase']] = phases.get(r['phase'], 0) + 1
-    print(f'[GradAnalysis] Saved {total_batches} batch records '
-          f'({poisoned_batches} with poisoned samples) to:')
-    print(f'[GradAnalysis]   {grad_path}')
-    print(f'[GradAnalysis]   {svd_path}')
-    for ph, cnt in phases.items():
-        ph_poisoned = sum(1 for r in grad_records if r['phase'] == ph and r['is_poisoned'])
-        print(f'[GradAnalysis]   phase={ph!r:12s}  batches={cnt}  poisoned_batches={ph_poisoned}')
-    if grad_records:
-        G_shape = tuple(grad_records[0]['G'].shape)
+    # ── Save summary of gradient records (data already flushed per epoch) ───────
+    total_batches    = flush_stats['total_batches']
+    poisoned_batches = flush_stats['poisoned_batches']
+    G_shape          = flush_stats['G_shape']
+    print(f'[GradAnalysis] Flushed {total_batches} batch records '
+          f'({poisoned_batches} with poisoned samples) to per-epoch files in: {grad_args.grad_save_dir}/')
+    print(f'[GradAnalysis]   gradients_validate_epoch{{N:04d}}.pt')
+    print(f'[GradAnalysis]   SVD_validate_epoch{{N:04d}}.pt')
+    if G_shape is not None:
         print(f'[GradAnalysis] G shape per batch: {G_shape}  '
               f'(N={G_shape[0]} samples, D={G_shape[1]} param elements)')
 
