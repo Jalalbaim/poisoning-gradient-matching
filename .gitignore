@@ -157,3 +157,5 @@ dmypy.json
 .claude/
 
 gradient_logs/
+
+grad_audit.ipynb
