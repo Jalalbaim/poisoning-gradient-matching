@@ -1,0 +1,140 @@
+{
+  "manifest_version": 1,
+  "created_utc": "2026-07-28T08:46:07.408279Z",
+  "artifact": {
+    "filename": "frozen_poison_CIFAR10_ResNet18_5-1-12.pt",
+    "path": "C:\\Users\\JALAL\\OneDrive\\Documents\\poisoning-gradient-matching\\poisons\\frozen_poison_CIFAR10_ResNet18_5-1-12.pt",
+    "bytes": 6164501,
+    "format": "torch.save dict, see forest/frozen.py",
+    "format_version": 1,
+    "sha256_content": "6a92de9c17ee03b92269c8906a8924462f5e2d4ff34f39004a33bed6a8867ac2",
+    "sha256_file": "d33d4d1954fffc2ba88719caa49a6003fbcae5c844a80d596889d6e772be5216",
+    "hash_scope": "sha256_content covers poison_delta raw float32 buffer + target images + canonical JSON of all metadata; sha256_file covers the .pt bytes"
+  },
+  "poison": {
+    "poisonkey": "5-1-12",
+    "poisonkey_semantics": "target_class-poison_class-target_id; target_id is a RAW absolute index into the test set, and target_class is inert metadata (forest/data/kettle.py:190,256)",
+    "modelkey": 2000000000,
+    "deterministic": true,
+    "eps": 16.0,
+    "budget": 0.01,
+    "dataset": "CIFAR10",
+    "net": [
+      "ResNet18"
+    ],
+    "recipe": "gradient-matching",
+    "threatmodel": "single-class",
+    "restarts": 8,
+    "attackiter": 250,
+    "attackoptim": "signAdam",
+    "num_poisons": 500,
+    "poison_class": 1,
+    "poison_class_name": "automobile",
+    "targets": [
+      {
+        "index": 12,
+        "true_class": 5,
+        "true_class_name": "dog",
+        "intended_class": 1,
+        "intended_class_name": "automobile"
+      }
+    ],
+    "poison_delta_shape": [
+      500,
+      3,
+      32,
+      32
+    ],
+    "data_mean": [
+      0.4914672374725342,
+      0.4822617471218109,
+      0.4467701315879822
+    ],
+    "data_std": [
+      0.24703224003314972,
+      0.24348513782024384,
+      0.26158785820007324
+    ],
+    "normalization": "poison_delta lives in NORMALIZED space, not pixel space. For a training image with dataset index `i` such that `lookup = poison_lookup[i]` exists:\n  x = ToTensor(clean_image_uint8)                 # [0, 1], shape (C, H, W)\n  x_norm = (x - data_mean) / data_std\n  x_norm_poisoned = x_norm + poison_delta[lookup]\n  pixel = clamp(x_norm_poisoned * data_std + data_mean, 0, 1)\nTraining images not present in poison_lookup are left clean. The crafting loop enforces two projections: |poison_delta| <= eps / 255 / data_std per channel (the L-inf budget in 8-bit pixel units), and x_norm + poison_delta stays inside the valid [0, 1] pixel range. poison_delta is stored unquantized (float32); writing the poisoned set to 8-bit images rounds it, which is lossy but is what an on-disk poisoned dataset would actually contain.",
+    "class_names": [
+      "airplane",
+      "automobile",
+      "bird",
+      "cat",
+      "deer",
+      "dog",
+      "frog",
+      "horse",
+      "ship",
+      "truck"
+    ]
+  },
+  "potency": {
+    "COMPLETE": false,
+    "note": "INCOMPLETE GATE. The 8-vrun evaluation was terminated externally during vrun 6 (no crash, no OOM). These are the vruns that ran to epoch 39. vrun 6 is excluded: it had reached fool acc 100%% at epoch 30 but never completed, so it is not counted.",
+    "planned_vruns": 8,
+    "completed_vruns": 5,
+    "frozen_poison": "poisons/frozen_poison_CIFAR10_ResNet18_5-1-12.pt",
+    "content_sha256": "6a92de9c17ee03b92269c8906a8924462f5e2d4ff34f39004a33bed6a8867ac2",
+    "mean_attack_success": 1.0,
+    "mean_clean_accuracy": 0.91814,
+    "runs": [
+      {
+        "run": 1,
+        "model_init_seed": 3908358096,
+        "attack_success": 1.0,
+        "target_pred_true_class": 0.0,
+        "target_adv_loss": 0.0028,
+        "clean_accuracy": 0.9218000000000001
+      },
+      {
+        "run": 2,
+        "model_init_seed": 492270812,
+        "attack_success": 1.0,
+        "target_pred_true_class": 0.0,
+        "target_adv_loss": 0.0388,
+        "clean_accuracy": 0.9122
+      },
+      {
+        "run": 3,
+        "model_init_seed": 544093026,
+        "attack_success": 1.0,
+        "target_pred_true_class": 0.0,
+        "target_adv_loss": 0.0001,
+        "clean_accuracy": 0.9209
+      },
+      {
+        "run": 4,
+        "model_init_seed": 2670377891,
+        "attack_success": 1.0,
+        "target_pred_true_class": 0.0,
+        "target_adv_loss": 0.004,
+        "clean_accuracy": 0.9116
+      },
+      {
+        "run": 5,
+        "model_init_seed": 2661237054,
+        "attack_success": 1.0,
+        "target_pred_true_class": 0.0,
+        "target_adv_loss": 0.0005,
+        "clean_accuracy": 0.9242
+      }
+    ],
+    "source": "reconstructed from C:\\Users\\JALAL\\AppData\\Local\\Temp\\claude\\C--Users-JALAL-OneDrive-Documents-poisoning-gradient-matching\\e87f7c81-be00-44ce-a563-a27d413f379c\\scratchpad\\gate_8vruns.log"
+  },
+  "backup": {
+    "path": "C:\\Users\\JALAL\\frozen_poisons\\frozen_poison_CIFAR10_ResNet18_5-1-12.pt",
+    "sha256_file": "d33d4d1954fffc2ba88719caa49a6003fbcae5c844a80d596889d6e772be5216",
+    "sha256_content": "6a92de9c17ee03b92269c8906a8924462f5e2d4ff34f39004a33bed6a8867ac2",
+    "verified": true
+  },
+  "provenance": {
+    "git_commit": "ca4d9abc06b261563ccf073280469ace2dba2f6f",
+    "torch": "2.11.0+cu126",
+    "cuda": "12.6",
+    "gpu": "NVIDIA GeForce RTX 3070 Laptop GPU",
+    "platform": "win32",
+    "python": "3.11.5"
+  },
+  "annotated_utc": "2026-07-28T11:18:20.835273Z"
+}

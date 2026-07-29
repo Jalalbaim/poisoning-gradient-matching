@@ -1,0 +1,53 @@
+{
+  "COMPLETE": false,
+  "note": "INCOMPLETE GATE. The 8-vrun evaluation was terminated externally during vrun 6 (no crash, no OOM). These are the vruns that ran to epoch 39. vrun 6 is excluded: it had reached fool acc 100%% at epoch 30 but never completed, so it is not counted.",
+  "planned_vruns": 8,
+  "completed_vruns": 5,
+  "frozen_poison": "poisons/frozen_poison_CIFAR10_ResNet18_5-1-12.pt",
+  "content_sha256": "6a92de9c17ee03b92269c8906a8924462f5e2d4ff34f39004a33bed6a8867ac2",
+  "mean_attack_success": 1.0,
+  "mean_clean_accuracy": 0.91814,
+  "runs": [
+    {
+      "run": 1,
+      "model_init_seed": 3908358096,
+      "attack_success": 1.0,
+      "target_pred_true_class": 0.0,
+      "target_adv_loss": 0.0028,
+      "clean_accuracy": 0.9218000000000001
+    },
+    {
+      "run": 2,
+      "model_init_seed": 492270812,
+      "attack_success": 1.0,
+      "target_pred_true_class": 0.0,
+      "target_adv_loss": 0.0388,
+      "clean_accuracy": 0.9122
+    },
+    {
+      "run": 3,
+      "model_init_seed": 544093026,
+      "attack_success": 1.0,
+      "target_pred_true_class": 0.0,
+      "target_adv_loss": 0.0001,
+      "clean_accuracy": 0.9209
+    },
+    {
+      "run": 4,
+      "model_init_seed": 2670377891,
+      "attack_success": 1.0,
+      "target_pred_true_class": 0.0,
+      "target_adv_loss": 0.004,
+      "clean_accuracy": 0.9116
+    },
+    {
+      "run": 5,
+      "model_init_seed": 2661237054,
+      "attack_success": 1.0,
+      "target_pred_true_class": 0.0,
+      "target_adv_loss": 0.0005,
+      "clean_accuracy": 0.9242
+    }
+  ],
+  "source": "reconstructed from C:\\Users\\JALAL\\AppData\\Local\\Temp\\claude\\C--Users-JALAL-OneDrive-Documents-poisoning-gradient-matching\\e87f7c81-be00-44ce-a563-a27d413f379c\\scratchpad\\gate_8vruns.log"
+}
